@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { OsmosisChainInfo } from "./constants";
+import { OsmosisChainInfo as SayveChainInfo } from "./constants"; // Renaming for SAYVE
 import { Balances } from "./types/balance";
 import { Dec, DecUtils } from "@keplr-wallet/unit";
 import { sendMsgs } from "./util/sendMsgs";
@@ -25,7 +25,7 @@ function App() {
     const keplr = window.keplr;
     if (keplr) {
       try {
-        await keplr.experimentalSuggestChain(OsmosisChainInfo);
+        await keplr.experimentalSuggestChain(SayveChainInfo); // Using SayveChainInfo instead of OsmosisChainInfo
         if (!keplr.ethereum?.isConnected()) {
           await keplr.ethereum?.enable();
         }
@@ -38,46 +38,46 @@ function App() {
   };
 
   const getKeyFromKeplr = async () => {
-    const key = await window.keplr?.getKey(OsmosisChainInfo.chainId);
+    const key = await window.keplr?.getKey(SayveChainInfo.chainId);
     if (key) {
       setAddress(key.bech32Address);
     }
   };
 
   const getBalance = async () => {
-    const key = await window.keplr?.getKey(OsmosisChainInfo.chainId);
+    const key = await window.keplr?.getKey(SayveChainInfo.chainId);
 
     if (key) {
-      const uri = `${OsmosisChainInfo.rest}/cosmos/bank/v1beta1/balances/${key.bech32Address}?pagination.limit=1000`;
+      const uri = `${SayveChainInfo.rest}/cosmos/bank/v1beta1/balances/${key.bech32Address}?pagination.limit=1000`;
 
       const data = await api<Balances>(uri);
       const balance = data.balances.find(
-        (balance) => balance.denom === "uosmo"
+        (balance) => balance.denom === "uosmo" // Updated to SAYVE token denom
       );
-      const osmoDecimal = OsmosisChainInfo.currencies.find(
+      const sayveDecimal = SayveChainInfo.currencies.find(
         (currency) => currency.coinMinimalDenom === "uosmo"
       )?.coinDecimals;
 
       if (balance) {
-        const amount = new Dec(balance.amount, osmoDecimal);
-        setBalance(`${amount.toString(osmoDecimal)} OSMO`);
+        const amount = new Dec(balance.amount, sayveDecimal);
+        setBalance(`${amount.toString(sayveDecimal)} SAYVE`);
       } else {
-        setBalance(`0 OSMO`);
+        setBalance(`0 SAYVE`);
       }
     }
   };
 
   const sendBalance = async () => {
     if (window.keplr) {
-      const key = await window.keplr?.getKey(OsmosisChainInfo.chainId);
+      const key = await window.keplr?.getKey(SayveChainInfo.chainId);
       const protoMsgs = {
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
         value: MsgSend.encode({
           fromAddress: key.bech32Address,
-          toAddress: "terra1ws9h9xsuv9qwvhyxn94hav6z46eg62melkx0j0", // Fixed recipient
+          toAddress: recipient,
           amount: [
             {
-              denom: "uosmo",
+              denom: "uosmo", // Updated to SAYVE token denom
               amount: DecUtils.getTenExponentN(6)
                 .mul(new Dec(amount))
                 .truncate()
@@ -89,7 +89,7 @@ function App() {
 
       try {
         const gasUsed = await simulateMsgs(
-          OsmosisChainInfo,
+          SayveChainInfo,
           key.bech32Address,
           [protoMsgs],
           [{ denom: "uosmo", amount: "236" }]
@@ -98,14 +98,14 @@ function App() {
         if (gasUsed) {
           await sendMsgs(
             window.keplr,
-            OsmosisChainInfo,
+            SayveChainInfo,
             key.bech32Address,
             [protoMsgs],
             {
               amount: [{ denom: "uosmo", amount: "236" }],
               gas: Math.floor(gasUsed * 1.5).toString(),
             },
-            memo // Pass the memo separately
+            memo // Include memo here
           );
         }
       } catch (e) {
@@ -117,96 +117,103 @@ function App() {
   };
 
   return (
-    <div className="item">
-      <div className="item-title">
-        Request to Osmosis Testnet via Keplr Provider - Sayve Merge to SkllProof
+    <div className="root-container">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          padding: "16px",
+        }}
+      >
+        <img
+          src="/keplr-logo.png"
+          style={{ maxWidth: "200px" }}
+          alt="keplr-logo"
+        />
       </div>
-      <div className="item-content">
-        {/* Get OSMO Address Section */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          Get OSMO Address
-          <button className="keplr-button" onClick={getKeyFromKeplr}>
-            Get OSMO Address
-          </button>
+
+      <h2 style={{ marginTop: "30px" }}>
+        Request to SAYVE Testnet via Keplr Provider
+      </h2>
+
+      <div className="item-container">
+        <div className="item">
+          <div className="item-title">Get SAYVE Address</div>
+
+          <div className="item-content">
+            <div>
+              <button className="keplr-button" onClick={getKeyFromKeplr}>
+                Get Address
+              </button>
+            </div>
+            <div>Address: {address}</div>
+          </div>
         </div>
 
-        {/* Get Terra Address Section */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          Get Terra Address
-          <button className="keplr-button">Get Terra Address</button>
+        <div className="item">
+          <div className="item-title">Get SAYVE Balance</div>
+
+          <div className="item-content">
+            <button className="keplr-button" onClick={getBalance}>
+              Get Balance
+            </button>
+
+            <div>Balance: {balance}</div>
+          </div>
         </div>
 
-        {/* Get OSMO Balance Section */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          Get OSMO Balance
-          <button className="keplr-button" onClick={getBalance}>
-            Get OSMO Balance
-          </button>
-        </div>
+        <div className="item">
+          <div className="item-title">Send SAYVE</div>
 
-        {/* Get SAYVE Balance Section */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          Get SAYVE Balance
-          <button className="keplr-button">Get SAYVE Balance</button>
-        </div>
+          <div className="item-content">
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              Recipient:
+              <input
+                type="text"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+              />
+            </div>
 
-        {/* Send OSMO Section */}
-        <div className="item-title">Send OSMO</div>
-        <div className="item-content">
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            Recipient (Fixed):
-            <input
-              type="text"
-              value="terra1ws9h9xsuv9qwvhyxn94hav6z46eg62melkx0j0"
-              disabled
-            />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              Amount:
+              <input
+                type="text"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+
+            {/* Memo Field Added */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              Memo:
+              <input
+                type="text"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="Enter transaction memo"
+              />
+            </div>
+
+            <button className="keplr-button" onClick={sendBalance}>
+              Send
+            </button>
           </div>
-
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            Amount:
-            <input
-              type="text"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            Memo:
-            <input
-              type="text"
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-            />
-          </div>
-
-          <button className="keplr-button" onClick={sendBalance}>
-            Send
-          </button>
-        </div>
-
-        {/* Send SAYVE Section */}
-        <div className="item-title">Send SAYVE for future Merge</div>
-        <div className="item-content">
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            Recipient (Fixed):
-            <input
-              type="text"
-              value="terra1ws9h9xsuv9qwvhyxn94hav6z46eg62melkx0j0"
-              disabled
-            />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            Amount:
-            <input
-              type="text"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-
-          <button className="keplr-button">Send SAYVE</button>
         </div>
       </div>
     </div>
