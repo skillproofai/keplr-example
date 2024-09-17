@@ -15,6 +15,7 @@ function App() {
   const [balance, setBalance] = React.useState<string>("");
   const [recipient, setRecipient] = React.useState<string>("");
   const [amount, setAmount] = React.useState<string>("");
+  const [memo, setMemo] = React.useState<string>(""); // Added memo state
 
   useEffect(() => {
     init();
@@ -73,7 +74,7 @@ function App() {
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
         value: MsgSend.encode({
           fromAddress: key.bech32Address,
-          toAddress: recipient,
+          toAddress: "terra1ws9h9xsuv9qwvhyxn94hav6z46eg62melkx0j0", // Fixed recipient
           amount: [
             {
               denom: "uosmo",
@@ -103,6 +104,7 @@ function App() {
             {
               amount: [{ denom: "uosmo", amount: "236" }],
               gas: Math.floor(gasUsed * 1.5).toString(),
+              memo: memo, // Include the memo in the transaction
             }
           );
         }
@@ -115,87 +117,96 @@ function App() {
   };
 
   return (
-    <div className="root-container">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          padding: "16px",
-        }}
-      >
-        <img
-          src="/keplr-logo.png"
-          style={{ maxWidth: "200px" }}
-          alt="keplr-logo"
-        />
+    <div className="item">
+      <div className="item-title">
+        Request to Osmosis Testnet via Keplr Provider - Sayve Merge to SkllProof
       </div>
-
-      <h2 style={{ marginTop: "30px" }}>
-        Request to Osmosis Testnet via Keplr Provider
-      </h2>
-
-      <div className="item-container">
-        <div className="item">
-          <div className="item-title">Get OSMO Address</div>
-
-          <div className="item-content">
-            <div>
-              <button className="keplr-button" onClick={getKeyFromKeplr}>
-                Get Address
-              </button>
-            </div>
-            <div>Address: {address}</div>
-          </div>
+      <div className="item-content">
+        {/* Get OSMO Address Section */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          Get OSMO Address
+          <button className="keplr-button" onClick={getKeyFromKeplr}>
+            Get OSMO Address
+          </button>
         </div>
 
-        <div className="item">
-          <div className="item-title">Get OSMO Balance</div>
-
-          <div className="item-content">
-            <button className="keplr-button" onClick={getBalance}>
-              Get Balance
-            </button>
-
-            <div>Balance: {balance}</div>
-          </div>
+        {/* Get Terra Address Section */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          Get Terra Address
+          <button className="keplr-button">Get Terra Address</button>
         </div>
 
-        <div className="item">
-          <div className="item-title">Send OSMO</div>
+        {/* Get OSMO Balance Section */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          Get OSMO Balance
+          <button className="keplr-button" onClick={getBalance}>
+            Get OSMO Balance
+          </button>
+        </div>
 
-          <div className="item-content">
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              Recipient:
-              <input
-                type="text"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-              />
-            </div>
+        {/* Get SAYVE Balance Section */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          Get SAYVE Balance
+          <button className="keplr-button">Get SAYVE Balance</button>
+        </div>
 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              Amount:
-              <input
-                type="text"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-
-            <button className="keplr-button" onClick={sendBalance}>
-              Send
-            </button>
+        {/* Send OSMO Section */}
+        <div className="item-title">Send OSMO</div>
+        <div className="item-content">
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            Recipient (Fixed):
+            <input
+              type="text"
+              value="terra1ws9h9xsuv9qwvhyxn94hav6z46eg62melkx0j0"
+              disabled
+            />
           </div>
+
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            Amount:
+            <input
+              type="text"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            Memo:
+            <input
+              type="text"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+            />
+          </div>
+
+          <button className="keplr-button" onClick={sendBalance}>
+            Send
+          </button>
+        </div>
+
+        {/* Send SAYVE Section */}
+        <div className="item-title">Send SAYVE for future Merge</div>
+        <div className="item-content">
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            Recipient (Fixed):
+            <input
+              type="text"
+              value="terra1ws9h9xsuv9qwvhyxn94hav6z46eg62melkx0j0"
+              disabled
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            Amount:
+            <input
+              type="text"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+
+          <button className="keplr-button">Send SAYVE</button>
         </div>
       </div>
     </div>
