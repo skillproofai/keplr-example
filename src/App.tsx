@@ -133,7 +133,7 @@ function App() {
       </div>
 
       <h2 style={{ marginTop: "30px" }}>
-        Request to SAYVE Testnet via Keplr Provider
+        Sayve Merge to SkillProof
       </h2>
 
       <div className="item-container">
