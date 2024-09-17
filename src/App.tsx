@@ -104,8 +104,8 @@ function App() {
             {
               amount: [{ denom: "uosmo", amount: "236" }],
               gas: Math.floor(gasUsed * 1.5).toString(),
-              memo: memo, // Include the memo in the transaction
-            }
+            },
+            memo // Pass the memo separately
           );
         }
       } catch (e) {
